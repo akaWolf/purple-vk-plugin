@@ -40,6 +40,7 @@ void start_long_poll_internal(PurpleConnection* gc, uint64 last_msg_id);
 void start_long_poll(PurpleConnection* gc)
 {
     uint64 last_msg_id = load_last_msg_id(gc);
+    purple_debug_info("prpl-vkcom", "Starting Long Poll with last msg id %lld\n", last_msg_id);
     start_long_poll_internal(gc, last_msg_id);
 }
 
@@ -129,7 +130,9 @@ void request_long_poll(PurpleConnection* gc, const string& server, const string&
     VkConnData* conn_data = get_conn_data(gc);
 
     string server_url = str_format(long_poll_url, server.data(), key.data(), ts);
+#if 0
     purple_debug_info("prpl-vkcom", "Connecting to Long Poll %s\n", server_url.data());
+#endif
 
     http_get(gc, server_url, [=](PurpleHttpConnection*, PurpleHttpResponse* response) {
         // Connection has been cancelled due to account being disconnected.
@@ -400,15 +403,12 @@ void process_online(PurpleConnection* gc, const picojson::value& v, bool online)
         return;
     } else {
         PurpleAccount* account = purple_connection_get_account(gc);
-        if (online) {
-            // Unfortunately, Vk longpoll does not give us information, whether the logged in user
-            // using mobile client or not, so we have to make the request to Vk.com API to know.
-            update_buddies_status_only(gc, { uid }, [=] {
+        // Unfortunately, Vk longpoll does not give us information, whether the logged in user
+        // using mobile client or not, so we have to make the request to Vk.com API to know.
+        update_buddies_presence_only(gc, { uid }, [=] {
+            if (online)
                 purple_prpl_got_user_login_time(account, name.data(), time(nullptr));
-            });
-        } else {
-            purple_prpl_got_user_status(account, name.data(), "offline", nullptr);
-        }
+        });
     }
 }
 
