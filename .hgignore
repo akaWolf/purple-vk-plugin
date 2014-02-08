@@ -1,0 +1,6 @@
+syntax:glob
+
+build/
+build-*/
+dist/purple-vk-plugin-*
+CMakeLists.txt.user # QtCreator project file
