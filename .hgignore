@@ -1,0 +1,6 @@
+syntax:glob
+
+build/
+build-*/
+dist/*
+CMakeLists.txt.user # QtCreator project file
