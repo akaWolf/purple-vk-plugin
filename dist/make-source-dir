@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# This script creates the directory with clean source.
+#
+# Package name and version are read from version file and the resulting directory
+# is named $PACKAGENAME-$VERSION
+
+cd `dirname $0`
+
+. version
+
+FULLNAME=$PACKAGENAME-$PACKAGEVERSION
+
+echo "Packaging $FULLNAME"
+rm -rf $FULLNAME
+
+hg archive $FULLNAME
+
+rm -f $FULLNAME/.hgignore
+rm -rf $FULLNAME/dist
