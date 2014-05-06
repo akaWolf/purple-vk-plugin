@@ -368,9 +368,24 @@ char* vk_get_chat_name(GHashTable* components)
         return g_strdup("CHAT NOT CREATED");
 }
 
-//void vk_chat_invite(PurpleConnection* gc, int conv_id, const char*, const char* who)
-//{
-//}
+void vk_chat_invite(PurpleConnection* gc, int conv_id, const char*, const char* who)
+{
+    uint64 chat_id = conv_id_to_chat_id(gc, conv_id);
+    if (chat_id == 0) {
+        vkcom_debug_error("Not implemented: adding users to just created chat\n");
+        return;
+    }
+
+    uint64 user_id = user_id_from_name(who);
+    if (user_id == 0) {
+        PurpleConversation* conv = purple_find_chat(gc, conv_id);
+        string error_msg = str_format("Unable to add user %s to chat", who);
+        purple_conversation_write(conv, nullptr, error_msg.data(), PURPLE_MESSAGE_ERROR, time(nullptr));
+        return;
+    }
+
+    add_user_to_chat(gc, chat_id, user_id);
+}
 
 void vk_chat_leave(PurpleConnection* gc, int id)
 {
@@ -397,8 +412,9 @@ int vk_chat_send(PurpleConnection* gc, int id, const char* message, PurpleMessag
 
     // Pidgin for some reason does not write outgoing messages when writing to the chat,
     // so we have to do it oruselves.
+    PurpleConversation* conv = purple_find_chat(gc, id);
     string from = get_self_chat_display_name(gc);
-    serv_got_chat_in(gc, id, from.data(), PURPLE_MESSAGE_SEND, message, time(nullptr));
+    purple_conv_chat_write(PURPLE_CONV_CHAT(conv), from.data(), message, PURPLE_MESSAGE_SEND, time(nullptr));
 
     return send_chat_message(gc, chat_id, message);
 }
@@ -460,10 +476,6 @@ char* vk_get_cb_real_name(PurpleConnection* gc, int id, const char* who)
     } else {
         return nullptr;
     }
-}
-
-void vk_set_chat_topic(PurpleConnection*, int, const char*)
-{
 }
 
 gboolean vk_can_receive_file(PurpleConnection*, const char*)
@@ -595,7 +607,7 @@ PurplePluginProtocolInfo prpl_info = {
     vk_chat_join, /* join_chat */
     nullptr, /* reject_chat */
     vk_get_chat_name, /* get_chat_name */
-    nullptr, //    vk_chat_invite, /* chat_invite */
+    vk_chat_invite, /* chat_invite */
     vk_chat_leave, /* chat_leave */
     nullptr, /* chat_whisper */
     vk_chat_send, /* chat_send */
@@ -612,7 +624,7 @@ PurplePluginProtocolInfo prpl_info = {
     nullptr, /* set_buddy_icon */
     nullptr, /* remove_group */
     vk_get_cb_real_name, /* get_cb_real_name */
-    nullptr, //    vk_set_chat_topic, /* set_chat_topic */
+    nullptr, /* set_chat_topic */
     vk_find_blist_chat, /* find_blist_chat */
     nullptr, /* roomlist_get_list */
     nullptr, /* roomlist_cancel */

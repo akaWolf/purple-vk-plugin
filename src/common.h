@@ -27,21 +27,11 @@ using std::set;
 using std::shared_ptr;
 using std::vector;
 
-// NOTE: Should change string alias to __gnu_cxx::vstring;
 typedef std::string string;
-typedef map<string, string> string_map;
-typedef pair<string, string> string_pair;
-typedef set<string> string_set;
-typedef vector<string> string_vec;
 
 typedef unsigned int uint;
-typedef vector<int> int_vec;
-typedef set<uint> uint_set;
 typedef int64_t int64;
 typedef uint64_t uint64;
-typedef vector<uint64> uint64_vec;
-typedef set<uint64> uint64_set;
-
 
 // GCC 4.6 supported only pre-C++11 monotonic_clock
 #if __GNUC__ != 4 || __GNUC_MINOR__ != 6
@@ -279,6 +269,17 @@ inline typename Map::mapped_type map_at(const Map& map, const Key& key, const Va
         return it->second;
 }
 
+// Returns pointer to value for key or nullptr.
+template<typename Map, typename Key, typename Value = typename Map::mapped_type>
+inline typename Map::mapped_type* map_at_ptr(Map& map, const Key& key)
+{
+    auto it = map.find(key);
+    if (it == map.end())
+        return nullptr;
+    else
+        return &it->second;
+}
+
 // Returns true if map or set contains key.
 template<typename Cont, typename Key>
 inline bool contains(const Cont& cont, const Key& key)
@@ -371,8 +372,15 @@ inline std::chrono::milliseconds::rep to_milliseconds(T duration)
     return std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
 }
 
+// Converts the given duration to seconds.
+template<typename T>
+inline std::chrono::seconds::rep to_seconds(T duration)
+{
+    return std::chrono::duration_cast<std::chrono::seconds>(duration).count();
+}
 
-// Debugging macroses
+
+// Debugging macros
 
 #define vkcom_debug_info(fmt, ...) \
     purple_debug_info("prpl-vkcom", fmt, ##__VA_ARGS__)
