@@ -8,6 +8,7 @@
  */
 
 // NOTE: Added in purple-vk-plugin to clean build warnings.
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
 
 /*
@@ -1076,3 +1077,5 @@ int main(void)
 }
 
 #endif
+
+#pragma GCC diagnostic pop
